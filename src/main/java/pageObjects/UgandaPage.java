@@ -15,4 +15,9 @@ public class UgandaPage {
     @FindBy(css = "a[id='secondarySlot']")
     public WebElement loginLink;
 
+    @FindBy(css = "[id='input_phone']")
+    public WebElement phoneNumberInput;
+
+    @FindBy(css = "[id='input_password']")
+    public WebElement passwordInput;
 }

@@ -28,7 +28,7 @@ public class BasePage {
     @FindBy(css = "[value='Log in']")
     public WebElement loginButton;
 
-    @FindBy(css = "[class='event-odds']")
+    @FindBy(css = ".event-bet")
     public List<WebElement> betOptions;
 
     @FindBy(css = "[name='stake-input']")
@@ -49,6 +49,9 @@ public class BasePage {
     @FindBy(css = "[id='Main-Menu-Button']")
     public WebElement mainMenuButton;
 
+    @FindBy(css = "[id='my-bets-menu-top']")
+    public WebElement betInfo;
+
     @FindBy(css = "[id='statement-menu-top']")
     public WebElement statementInfo;
 
@@ -60,4 +63,22 @@ public class BasePage {
 
     @FindBy(css = "[class='content-wrapper']")
     public WebElement betSlipContent;
+
+    @FindBy(css = "[id='Bp-Leg-Bonus-Info']")
+    public WebElement bonusInfo;
+
+    @FindBy(css = ".component-boosted>div>.events-container>.events-sub-container>div>div>.event-bet")
+    public List<WebElement> pawaBoostCategory;
+
+    @FindBy(css = "[category='2']>.block>.events-container>div>div>div>.event-bet")
+    public List<WebElement> footballCategory;
+
+    @FindBy(css = "#single-bs-bonus")
+    public WebElement multiBetBonus;
+
+    @FindBy(css = ".bp-bet-chosen")
+    public List<WebElement> betsAmount;
+
+    @FindBy(css = ".table.midwide-content>div.row-bottomline-link")
+    public List<WebElement> betInfoList;
 }

@@ -28,6 +28,7 @@ public class DriverFactory {
         }
 
         driver = new ChromeDriver(chromeOptions());
+        driver.manage().window().maximize();
     }
 
     private ChromeOptions chromeOptions() {

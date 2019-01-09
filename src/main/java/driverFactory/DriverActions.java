@@ -1,6 +1,7 @@
 package driverFactory;
 
 import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -19,8 +20,8 @@ public interface DriverActions {
 
     default FluentWait<WebDriver> fluentWait() {
         return new FluentWait<>(driver())
-                .withTimeout(Duration.ofSeconds(5))
-                .pollingEvery(Duration.ofSeconds(1))
+                .withTimeout(Duration.ofSeconds(10))
+                .pollingEvery(Duration.ofSeconds(2))
                 .ignoring(NoSuchElementException.class)
                 .ignoring(ElementNotVisibleException.class)
                 .ignoring(ElementNotInteractableException.class)
@@ -38,11 +39,16 @@ public interface DriverActions {
         }
     }
 
-    default void clickAny(List<WebElement> elements) {
+    default void clickAny(List<WebElement> elements, int times) {
         fluentWait().until(ExpectedConditions.visibilityOfAllElements(elements));
         Random r = new Random();
-        int i = r.nextInt(elements.size());
-        elements.get(i).click();
+        while (times > 0) {
+            --times;
+            WebElement element = elements.get(r.nextInt(elements.size()));
+            scrollTo(element);
+            webDriverWait().until(ExpectedConditions.elementToBeClickable(element));
+            click(element);
+        }
     }
 
     default boolean isClickable(Object object) throws NoSuchElementException {
@@ -58,18 +64,6 @@ public interface DriverActions {
         }
     }
 
-    default String getText(Object object) throws NoSuchElementException {
-        if (object instanceof WebElement) {
-            return  ((WebElement) object).getText();
-        } else if (object instanceof List<?>){
-            List<WebElement> elements = (List<WebElement>) object;
-            for (WebElement element: elements) {
-                return element.getText();
-            }
-        }
-        return null;
-    }
-
     default void quit() {
         driver().quit();
     }
@@ -80,5 +74,12 @@ public interface DriverActions {
 
     default void displayAlert(String alertMessage) {
         ((JavascriptExecutor) driver()).executeScript("(alert( ' " + alertMessage + " '));");
+    }
+
+    default void scrollTo(WebElement element) {
+        Actions actions = new Actions(driver());
+        fluentWait().until(ExpectedConditions.visibilityOf(element));
+        actions.moveToElement(element);
+        actions.perform();
     }
 }

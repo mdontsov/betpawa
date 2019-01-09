@@ -11,7 +11,6 @@ import driverFactory.DriverActions;
 import driverFactory.DriverFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import pageObjects.BasePage;
-import pageObjects.UgandaPage;
 
 import static org.junit.Assert.*;
 
@@ -22,9 +21,6 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
     static int stakeAmount;
 
     @Inject
-    private UgandaPage ugandaPage;
-
-    @Inject
     private BasePage basePage;
 
     @Before("@start")
@@ -32,23 +28,12 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
         basePage = new BasePage();
     }
 
-    @Given("^(.*) page is opened$")
-    public void pageIsOpened(String locationName) {
-        switch (locationName) {
-            case "Uganda":
-                openUrl("http://ug.test.verekuu.com/");
-                break;
-            case "Kenya":
-                openUrl("http://ke.test.verekuu.com/");
-                break;
-        }
-    }
-
     @Given("^(.*) user with (.*)$")
     public void user(String userName, String balanceName) {
-        click(basePage.loginLink);
         switch (userName) {
             case "Uganda":
+                openUrl("http://ug.test.verekuu.com/");
+                click(basePage.loginLink);
                 if (balanceName.equalsIgnoreCase("balance")) {
                     basePage.phoneNumberInput.sendKeys("788899001");
                 } else if (balanceName.equalsIgnoreCase("no balance")) {
@@ -59,6 +44,8 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
                 basePage.passwordInput.sendKeys("123456");
                 break;
             case "Kenya":
+                openUrl("http://ke.test.verekuu.com/");
+                click(basePage.loginLink);
                 basePage.phoneNumberInput.sendKeys("254728899021");
                 basePage.passwordInput.sendKeys("123456");
                 break;
@@ -68,14 +55,20 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
         click(basePage.loginButton);
     }
 
-    @When("^place a bet of (\\d+)$")
-    public void placeABet(int amountToBet) {
-        clickAny(basePage.betOptions);
+    @When("^place a bet of (\\d+) (\\d+) (?:time|times)$")
+    public void placeABet(int amountToBet, int amountOfBets) {
+        clickAny(basePage.pawaBoostCategory, amountOfBets);
+        if (basePage.betsAmount.size() < amountOfBets) {
+            clickAny(basePage.footballCategory, amountOfBets);
+        }
+        stakeAmount = amountToBet;
         assertTrue(!basePage.placeBetButton.isEnabled());
         initialBalance = Math.round(Double.parseDouble(basePage.balanceInfo.getText()
                 .replaceAll("[^0-9]", ""))) / 100.0;
-        stakeAmount = amountToBet;
         basePage.stakeInput.sendKeys(String.valueOf(stakeAmount));
+        if (basePage.betsAmount.size() > 1) {
+            assertTrue(basePage.bonusInfo.isDisplayed());
+        }
     }
 
     @Then("^bet successfully placed$")
@@ -88,6 +81,7 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
     @And("^balance is reduced by bet stake amount$")
     public void balanceIsReducedByBetStakeAmount() {
         newBalance = initialBalance - stakeAmount;
+        fluentWait().until(ExpectedConditions.visibilityOf(basePage.balanceInfo));
         assertEquals(newBalance, Math.round(Double.parseDouble(basePage.balanceInfo.getText()
                 .replaceAll("[^0-9]", ""))) / 100.0, 0.00);
 
@@ -95,16 +89,28 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
 
     @And("^info about placed bet is displayed on statement$")
     public void infoAboutPlacedBetIsDisplayedOnStatement() {
-        click(basePage.betInfoLink);
+        click(basePage.mainMenuButton);
+        click(basePage.betInfo);
+        fluentWait().until(ExpectedConditions.visibilityOfAllElements(basePage.betInfoList));
+        click(basePage.betInfoList.get(0));
         fluentWait().until(ExpectedConditions.visibilityOf(basePage.betSlipContent));
         String slipInfo = basePage.betSlipTag.getText();
         click(basePage.mainMenuButton);
         click(basePage.statementInfo);
         fluentWait().until(ExpectedConditions.visibilityOfAllElements(basePage.statementActionInfo));
+        assertTrue(basePage.statementActionInfo.get(0).getText().contains(slipInfo));
     }
 
     @After("@end")
     public void tearDown() {
 //        quit();
+    }
+
+    @And("^bonus is calculated$")
+    public void bonusIsCalculated() {
+        scrollTo(basePage.betInfoLink);
+        click(basePage.betInfoLink);
+        fluentWait().until(ExpectedConditions.visibilityOf(basePage.multiBetBonus));
+        assertTrue(basePage.multiBetBonus.isDisplayed());
     }
 }

@@ -38,9 +38,8 @@ public abstract class DriverFactory {
     private ChromeOptions chromeOptions() {
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.addArguments("--ignore-certificate-errors");
-//        chromeOptions.addArguments("--incognito");
-        DesiredCapabilities capabilities = DesiredCapabilities.chrome();
-        capabilities.setCapability("applicationCacheEnabled", false);
+        chromeOptions.addArguments("--incognito");
+//        chromeOptions.setCapability("applicationCacheEnabled", false);
         return chromeOptions;
     }
 }

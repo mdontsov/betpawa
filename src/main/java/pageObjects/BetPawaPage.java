@@ -59,7 +59,10 @@ public class BetPawaPage {
     public WebElement betSlipTag;
 
     @FindBy(css = "[class='statement']>tbody>tr>td>a")
-    public List<WebElement> statementActionInfo;
+    public List<WebElement> statementBetInfo;
+
+    @FindBy(css = "[class='statement']>tbody>tr>td.st-action")
+    public List<WebElement> statementVoucherInfo;
 
     @FindBy(css = "[class='content-wrapper']")
     public WebElement betSlipContent;

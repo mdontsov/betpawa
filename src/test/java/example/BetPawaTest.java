@@ -91,7 +91,7 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
     }
 
     @And("^info about (.*) is displayed on statement$")
-    public void infoAboutPlacedBetIsDisplayedOnStatement(String actionDetails) {
+    public void infoAboutPlacedBetIsDisplayedOnStatement(String actionDetails) throws InterruptedException {
         click(betPawaPage.mainMenuButton);
         switch (actionDetails) {
             case "placed bet":
@@ -102,16 +102,17 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
                 String slipInfo = betPawaPage.betSlipTag.getText();
                 click(betPawaPage.mainMenuButton);
                 click(betPawaPage.statementInfo);
-                fluentWait().until(ExpectedConditions.visibilityOfAllElements(betPawaPage.statementActionInfo));
-                assertTrue(betPawaPage.statementActionInfo.get(0)
+                fluentWait().until(ExpectedConditions.visibilityOfAllElements(betPawaPage.statementBetInfo));
+                assertTrue(betPawaPage.statementBetInfo.get(0)
                         .getText().equalsIgnoreCase("bet " + slipInfo + " placed"));
                 break;
             case "created voucher":
+                driver().navigate().refresh();
                 click(betPawaPage.mainMenuButton);
                 click(betPawaPage.statementInfo);
-                fluentWait().until(ExpectedConditions.visibilityOfAllElements(betPawaPage.statementActionInfo));
-                assertTrue(betPawaPage.statementActionInfo.get(0)
-                        .getText().contains("Voucher created"));
+                fluentWait().until(ExpectedConditions.visibilityOfAllElements(betPawaPage.statementVoucherInfo));
+                assertTrue(betPawaPage.statementVoucherInfo.get(0)
+                        .getText().contains("voucher created"));
         }
 
     }
@@ -125,7 +126,7 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
     }
 
     @And("^user withdraws (\\d+) to (.*)$")
-    public void userPerformsWithdrawToVoucher(int withdrawAmount, String withdrawAction) {
+    public void userPerformsWithdrawToVoucher(int withdrawAmount, String withdrawAction) throws InterruptedException {
         switch (withdrawAction) {
             case "voucher":
                 click(betPawaPage.mainMenuButton);
@@ -137,6 +138,8 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
                 voucherAmount = withdrawAmount;
                 click(betPawaPage.createVoucher);
                 fluentWait().until(ExpectedConditions.visibilityOf(betPawaPage.notifySuccess));
+                click(betPawaPage.withdrawToVoucher);
+                Thread.sleep(3000);
                 voucherData = betPawaPage.vouchersList.get(0).getText();
                 break;
         }

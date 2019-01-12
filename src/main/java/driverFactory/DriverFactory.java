@@ -3,6 +3,9 @@ package driverFactory;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
+
+import java.util.concurrent.TimeUnit;
 
 public abstract class DriverFactory {
 
@@ -29,11 +32,15 @@ public abstract class DriverFactory {
 
         driver = new ChromeDriver(chromeOptions());
         driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
     }
 
     private ChromeOptions chromeOptions() {
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.addArguments("--ignore-certificate-errors");
+//        chromeOptions.addArguments("--incognito");
+        DesiredCapabilities capabilities = DesiredCapabilities.chrome();
+        capabilities.setCapability("applicationCacheEnabled", false);
         return chromeOptions;
     }
 }

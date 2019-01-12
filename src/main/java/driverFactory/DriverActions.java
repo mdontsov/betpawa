@@ -14,8 +14,8 @@ import static driverFactory.DriverFactory.driver;
 
 public interface DriverActions {
 
-    default WebDriverWait webDriverWait() {
-        return new WebDriverWait(driver(), 10);
+    default WebDriverWait webDriverWait(long timeOutInSeconds) {
+        return new WebDriverWait(driver(), timeOutInSeconds);
     }
 
     default FluentWait<WebDriver> fluentWait() {
@@ -46,18 +46,18 @@ public interface DriverActions {
             --times;
             WebElement element = elements.get(r.nextInt(elements.size()));
             scrollTo(element);
-            webDriverWait().until(ExpectedConditions.elementToBeClickable(element));
+            webDriverWait(10).until(ExpectedConditions.elementToBeClickable(element));
             click(element);
         }
     }
 
     default boolean isClickable(Object object) throws NoSuchElementException {
         if (object instanceof WebElement) {
-            webDriverWait().until(ExpectedConditions.elementToBeClickable((WebElement) object));
+            webDriverWait(10).until(ExpectedConditions.elementToBeClickable((WebElement) object));
             return true;
         } else if (object instanceof List<?>) {
             List<WebElement> elements = (List<WebElement>) object;
-            elements.forEach(element -> webDriverWait().until(ExpectedConditions.elementToBeClickable(element)));
+            elements.forEach(element -> webDriverWait(10).until(ExpectedConditions.elementToBeClickable(element)));
             return true;
         } else {
             return false;
@@ -81,5 +81,15 @@ public interface DriverActions {
         fluentWait().until(ExpectedConditions.visibilityOf(element));
         actions.moveToElement(element);
         actions.perform();
+    }
+
+    default void input(WebElement element, Object data) {
+        fluentWait().until(ExpectedConditions.visibilityOf(element));
+        element.sendKeys(String.valueOf(data));
+    }
+
+    default void waitUntilPageLoaded() {
+        webDriverWait(60).until(webDriver -> ((JavascriptExecutor) webDriver)
+                .executeScript("return document.readyState").equals("complete"));
     }
 }

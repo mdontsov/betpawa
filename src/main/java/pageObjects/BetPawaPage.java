@@ -7,9 +7,9 @@ import java.util.List;
 
 import static driverFactory.DriverFactory.driver;
 
-public class BasePage {
+public class BetPawaPage {
 
-    public BasePage() {
+    public BetPawaPage() {
         PageFactory.initElements(driver(), this);
     }
 
@@ -46,7 +46,7 @@ public class BasePage {
     @FindBy(css = "[id='Coupon-Status-Message']>a")
     public WebElement betInfoLink;
 
-    @FindBy(css = "[id='Main-Menu-Button']")
+    @FindBy(css = "#Main-Menu-Button")
     public WebElement mainMenuButton;
 
     @FindBy(css = "[id='my-bets-menu-top']")
@@ -81,4 +81,34 @@ public class BasePage {
 
     @FindBy(css = ".table.midwide-content>div.row-bottomline-link")
     public List<WebElement> betInfoList;
+
+    @FindBy(css = "a[id='withdraw-menu-top']")
+    public WebElement withdrawButton;
+
+    @FindBy(css = "a[id=withdraw-to-voucher]")
+    public WebElement withdrawToVoucher;
+
+    @FindBy(css = "[id=Input-Amount]")
+    public WebElement withdrawAmount;
+
+    @FindBy(css = "[value='Create voucher']")
+    public WebElement createVoucher;
+
+    @FindBy(css = ".notify.success")
+    public WebElement notifySuccess;
+
+    @FindBy(css = ".row-bottomline>div:nth-child(2)>div>span")
+    public List<WebElement> vouchersList;
+
+    @FindBy(css = "#input_voucher")
+    public WebElement voucherActivationInput;
+
+    @FindBy(css = "#activateVoucher")
+    public WebElement activateVoucherButton;
+
+    @FindBy(css = ".item-yellow")
+    public WebElement voucherAmountInfoCell;
+
+    @FindBy(css = ".bp-dropdown.bp-dropdown-active>div>ul>li:nth-child(8)")
+    public WebElement logoutButton;
 }

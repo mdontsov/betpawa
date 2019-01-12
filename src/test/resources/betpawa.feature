@@ -15,3 +15,11 @@
       And bonus is calculated
       And balance is reduced by bet stake amount
       And info about placed bet is displayed on statement
+
+    Scenario: Successful withdrawal to voucher
+      Given Uganda user with balance
+      And user withdraws 50 to voucher
+      Then voucher is generated
+      And voucher number is displayed
+      And money are out of account
+      And info about created voucher is displayed on statement

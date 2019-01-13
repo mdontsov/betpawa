@@ -10,7 +10,7 @@ import cucumber.annotation.en.When;
 import driverFactory.DriverActions;
 import driverFactory.DriverFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import pageObjects.BetPawaPage;
+import pageObjects.*;
 
 import static org.junit.Assert.*;
 
@@ -23,11 +23,27 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
     static int voucherAmount;
 
     @Inject
-    private BetPawaPage betPawaPage;
+    private BasePage basePage;
+
+    @Inject
+    private BetsPage betsPage;
+
+    @Inject
+    private StatementPage statementPage;
+
+    @Inject
+    private VoucherPage voucherPage;
+
+    @Inject
+    private WithdrawPage withdrawPage;
 
     @Before("@start")
     public void setUp() {
-        betPawaPage = new BetPawaPage();
+        basePage = new BasePage();
+        betsPage = new BetsPage();
+        statementPage = new StatementPage();
+        voucherPage = new VoucherPage();
+        withdrawPage = new WithdrawPage();
     }
 
     @Given("^(.*) user with (.*)$")
@@ -35,158 +51,158 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
         switch (userName) {
             case "Uganda":
                 openUrl("http://ug.test.verekuu.com/");
-                click(betPawaPage.loginLink);
-                if (balanceName.equalsIgnoreCase("balance")) {
-                    betPawaPage.phoneNumberInput.sendKeys("788899001");
-                } else if (balanceName.equalsIgnoreCase("no balance")) {
-                    betPawaPage.phoneNumberInput.sendKeys("788899002");
+                click(basePage.loginLink);
+                if (balanceName.equalsIgnoreCase("large balance")) {
+                    basePage.phoneNumberInput.sendKeys("788899001");
+                } else if (balanceName.equalsIgnoreCase("small balance")) {
+                    basePage.phoneNumberInput.sendKeys("788899002");
                 } else {
                     throw new IllegalArgumentException();
                 }
-                betPawaPage.passwordInput.sendKeys("123456");
+                basePage.passwordInput.sendKeys("123456");
                 break;
             case "Kenya":
                 openUrl("http://ke.test.verekuu.com/");
-                click(betPawaPage.loginLink);
-                betPawaPage.phoneNumberInput.sendKeys("254728899021");
-                betPawaPage.passwordInput.sendKeys("123456");
+                click(basePage.loginLink);
+                basePage.phoneNumberInput.sendKeys("254728899021");
+                basePage.passwordInput.sendKeys("123456");
                 break;
             default:
                 displayAlert("Unknown user!");
         }
-        click(betPawaPage.loginButton);
+        click(basePage.loginButton);
         Thread.sleep(3000);
     }
 
     @When("^place a bet of (\\d+) (\\d+) (?:time|times)$")
     public void placeABet(int amountToBet, int amountOfBets) {
-        clickAny(betPawaPage.pawaBoostCategory, amountOfBets);
-        if (betPawaPage.betsAmount.size() < amountOfBets) {
-            clickAny(betPawaPage.footballCategory, amountOfBets);
+        clickAny(basePage.pawaBoostCategory, amountOfBets);
+        if (basePage.betsAmount.size() < amountOfBets) {
+            clickAny(basePage.footballCategory, amountOfBets);
         }
         stakeAmount = amountToBet;
-        assertTrue(!betPawaPage.placeBetButton.isEnabled());
-        initialBalance = Math.round(Double.parseDouble(betPawaPage.balanceInfo.getText()
+        assertTrue(!basePage.placeBetButton.isEnabled());
+        initialBalance = Math.round(Double.parseDouble(basePage.balanceInfo.getText()
                 .replaceAll("[^0-9]", ""))) / 100.0;
-        betPawaPage.stakeInput.sendKeys(String.valueOf(stakeAmount));
-        if (betPawaPage.betsAmount.size() > 1) {
-            assertTrue(betPawaPage.bonusInfo.isDisplayed());
+        basePage.stakeInput.sendKeys(String.valueOf(stakeAmount));
+        if (basePage.betsAmount.size() > 1) {
+            assertTrue(basePage.bonusInfo.isDisplayed());
         }
     }
 
     @Then("^bet successfully placed$")
     public void betSuccessfullyPlaced() {
-        assertTrue(betPawaPage.placeBetButton.isEnabled());
-        click(betPawaPage.placeBetButton);
-        fluentWait().until(ExpectedConditions.visibilityOf(betPawaPage.successNotification));
+        assertTrue(basePage.placeBetButton.isEnabled());
+        click(basePage.placeBetButton);
+        fluentWait().until(ExpectedConditions.visibilityOf(basePage.successNotification));
     }
 
     @And("^balance is reduced by bet stake amount$")
     public void balanceIsReducedByBetStakeAmount() {
         newBalance = initialBalance - stakeAmount;
-        fluentWait().until(ExpectedConditions.visibilityOf(betPawaPage.balanceInfo));
-        assertEquals(newBalance, Math.round(Double.parseDouble(betPawaPage.balanceInfo.getText()
+        fluentWait().until(ExpectedConditions.visibilityOf(basePage.balanceInfo));
+        assertEquals(newBalance, Math.round(Double.parseDouble(basePage.balanceInfo.getText()
                 .replaceAll("[^0-9]", ""))) / 100.0, 0.00);
 
     }
 
     @And("^info about (.*) is displayed on statement$")
     public void infoAboutPlacedBetIsDisplayedOnStatement(String actionDetails) throws InterruptedException {
-        click(betPawaPage.mainMenuButton);
+        click(basePage.mainMenuButton);
         switch (actionDetails) {
             case "placed bet":
-                click(betPawaPage.betInfo);
-                fluentWait().until(ExpectedConditions.visibilityOfAllElements(betPawaPage.betInfoList));
-                click(betPawaPage.betInfoList.get(0));
-                fluentWait().until(ExpectedConditions.visibilityOf(betPawaPage.betSlipContent));
-                String slipInfo = betPawaPage.betSlipTag.getText();
-                click(betPawaPage.mainMenuButton);
-                click(betPawaPage.statementInfo);
-                fluentWait().until(ExpectedConditions.visibilityOfAllElements(betPawaPage.statementBetInfo));
-                assertTrue(betPawaPage.statementBetInfo.get(0)
+                click(basePage.betInfo);
+                fluentWait().until(ExpectedConditions.visibilityOfAllElements(betsPage.betInfoList));
+                click(betsPage.betInfoList.get(0));
+                fluentWait().until(ExpectedConditions.visibilityOf(betsPage.betSlipContent));
+                String slipInfo = betsPage.betSlipTag.getText();
+                click(betsPage.mainMenuButton);
+                click(betsPage.statementInfo);
+                fluentWait().until(ExpectedConditions.visibilityOfAllElements(statementPage.statementBetInfo));
+                assertTrue(statementPage.statementBetInfo.get(0)
                         .getText().equalsIgnoreCase("bet " + slipInfo + " placed"));
                 break;
             case "created voucher":
                 driver().navigate().refresh();
-                click(betPawaPage.mainMenuButton);
-                click(betPawaPage.statementInfo);
-                fluentWait().until(ExpectedConditions.visibilityOfAllElements(betPawaPage.statementVoucherInfo));
-                assertTrue(betPawaPage.statementVoucherInfo.get(0)
-                        .getText().contains("voucher created"));
+                click(basePage.mainMenuButton);
+                click(basePage.statementInfo);
+                fluentWait().until(ExpectedConditions.visibilityOfAllElements(statementPage.statementVoucherInfo));
+                assertTrue(statementPage.statementVoucherInfo.get(0)
+                        .getText().contains("Voucher created"));
         }
 
     }
 
     @And("^bonus is calculated$")
     public void bonusIsCalculated() {
-        scrollTo(betPawaPage.betInfoLink);
-        click(betPawaPage.betInfoLink);
-        fluentWait().until(ExpectedConditions.visibilityOf(betPawaPage.multiBetBonus));
-        assertTrue(betPawaPage.multiBetBonus.isDisplayed());
+        scrollTo(basePage.betInfoLink);
+        click(basePage.betInfoLink);
+        fluentWait().until(ExpectedConditions.visibilityOf(betsPage.multiBetBonus));
+        assertTrue(betsPage.multiBetBonus.isDisplayed());
     }
 
     @And("^user withdraws (\\d+) to (.*)$")
     public void userPerformsWithdrawToVoucher(int withdrawAmount, String withdrawAction) throws InterruptedException {
         switch (withdrawAction) {
             case "voucher":
-                click(betPawaPage.mainMenuButton);
-                click(betPawaPage.withdrawButton);
-                click(betPawaPage.withdrawToVoucher);
-                input(betPawaPage.withdrawAmount, withdrawAmount);
-                initialBalance = Math.round(Double.parseDouble(betPawaPage.balanceInfo.getText()
+                click(basePage.mainMenuButton);
+                click(basePage.withdrawButton);
+                click(basePage.withdrawToVoucher);
+                input(withdrawPage.withdrawAmount, withdrawAmount);
+                initialBalance = Math.round(Double.parseDouble(basePage.balanceInfo.getText()
                         .replaceAll("[^0-9]", ""))) / 100.0;
                 voucherAmount = withdrawAmount;
-                click(betPawaPage.createVoucher);
-                fluentWait().until(ExpectedConditions.visibilityOf(betPawaPage.notifySuccess));
-                click(betPawaPage.withdrawToVoucher);
+                click(withdrawPage.createVoucher);
+                fluentWait().until(ExpectedConditions.visibilityOf(withdrawPage.notifySuccess));
+//                click(basePage.withdrawToVoucher);
                 Thread.sleep(3000);
-                voucherData = betPawaPage.vouchersList.get(0).getText();
+                voucherData = withdrawPage.vouchersList.get(0).getText();
                 break;
         }
     }
 
     @Then("^(.*) is generated$")
     public void voucherIsGenerated(String entityName) throws InterruptedException {
-        click(betPawaPage.mainMenuButton);
-        click(betPawaPage.logoutButton);
-        click(betPawaPage.loginLink);
-        betPawaPage.phoneNumberInput.clear();
-        betPawaPage.phoneNumberInput.sendKeys("788899002");
-        betPawaPage.passwordInput.sendKeys("123456");
-        click(betPawaPage.loginButton);
+        click(basePage.mainMenuButton);
+        click(basePage.logoutButton);
+        click(basePage.loginLink);
+        basePage.phoneNumberInput.clear();
+        basePage.phoneNumberInput.sendKeys("788899002");
+        basePage.passwordInput.sendKeys("123456");
+        click(basePage.loginButton);
         Thread.sleep(3000);
 
         switch (entityName) {
             case "voucher":
                 driver().navigate().to("http://ug.test.verekuu.com/voucher");
-                input(betPawaPage.voucherActivationInput, voucherData);
-                click(betPawaPage.activateVoucherButton);
-                assertTrue(betPawaPage.notifySuccess.isDisplayed());
-                assertTrue(betPawaPage.voucherAmountInfoCell.getText().contains(String.valueOf(voucherAmount)));
+                input(voucherPage.voucherActivationInput, voucherData);
+                click(voucherPage.activateVoucherButton);
+                assertTrue(basePage.notifySuccess.isDisplayed());
+                assertTrue(voucherPage.voucherAmountInfoCell.getText().contains(String.valueOf(voucherAmount)));
         }
     }
 
     @And("^voucher number is displayed$")
     public void voucherNumberIsDisplayed() throws InterruptedException {
-        click(betPawaPage.mainMenuButton);
-        click(betPawaPage.logoutButton);
-        click(betPawaPage.loginLink);
-        betPawaPage.phoneNumberInput.clear();
-        betPawaPage.phoneNumberInput.sendKeys("788899001");
-        betPawaPage.passwordInput.sendKeys("123456");
-        click(betPawaPage.loginButton);
+        click(basePage.mainMenuButton);
+        click(basePage.logoutButton);
+        click(basePage.loginLink);
+        basePage.phoneNumberInput.clear();
+        basePage.phoneNumberInput.sendKeys("788899001");
+        basePage.passwordInput.sendKeys("123456");
+        click(basePage.loginButton);
         Thread.sleep(3000);
-        click(betPawaPage.mainMenuButton);
-        click(betPawaPage.withdrawButton);
-        click(betPawaPage.withdrawToVoucher);
-        fluentWait().until(ExpectedConditions.visibilityOfAllElements(betPawaPage.vouchersList));
-        assertTrue(betPawaPage.vouchersList.get(0).getText().contains(voucherData));
+        click(basePage.mainMenuButton);
+        click(basePage.withdrawButton);
+        click(basePage.withdrawToVoucher);
+        fluentWait().until(ExpectedConditions.visibilityOfAllElements(withdrawPage.vouchersList));
+        assertTrue(withdrawPage.vouchersList.get(0).getText().contains(voucherData));
     }
 
     @And("^money are out of account$")
     public void moneyAreOutOfAccount() {
         newBalance = initialBalance - voucherAmount;
-        assertEquals(newBalance, Math.round(Double.parseDouble(betPawaPage.balanceInfo.getText()
+        assertEquals(newBalance, Math.round(Double.parseDouble(basePage.balanceInfo.getText()
                 .replaceAll("[^0-9]", ""))) / 100.0, 0.00);
     }
 

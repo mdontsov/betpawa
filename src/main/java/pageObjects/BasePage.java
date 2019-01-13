@@ -7,9 +7,9 @@ import java.util.List;
 
 import static driverFactory.DriverFactory.driver;
 
-public class BetPawaPage {
+public class BasePage {
 
-    public BetPawaPage() {
+    public BasePage() {
         PageFactory.initElements(driver(), this);
     }
 
@@ -55,15 +55,6 @@ public class BetPawaPage {
     @FindBy(css = "[id='statement-menu-top']")
     public WebElement statementInfo;
 
-    @FindBy(css = "[class='plustxt bold']")
-    public WebElement betSlipTag;
-
-    @FindBy(css = "[class='statement']>tbody>tr>td>a")
-    public List<WebElement> statementBetInfo;
-
-    @FindBy(css = "[class='statement']>tbody>tr>td.st-action")
-    public List<WebElement> statementVoucherInfo;
-
     @FindBy(css = "[class='content-wrapper']")
     public WebElement betSlipContent;
 
@@ -76,14 +67,8 @@ public class BetPawaPage {
     @FindBy(css = "[category='2']>.block>.events-container>div>div>div>.event-bet")
     public List<WebElement> footballCategory;
 
-    @FindBy(css = "#single-bs-bonus")
-    public WebElement multiBetBonus;
-
     @FindBy(css = ".bp-bet-chosen")
     public List<WebElement> betsAmount;
-
-    @FindBy(css = ".table.midwide-content>div.row-bottomline-link")
-    public List<WebElement> betInfoList;
 
     @FindBy(css = "a[id='withdraw-menu-top']")
     public WebElement withdrawButton;
@@ -91,26 +76,8 @@ public class BetPawaPage {
     @FindBy(css = "a[id=withdraw-to-voucher]")
     public WebElement withdrawToVoucher;
 
-    @FindBy(css = "[id=Input-Amount]")
-    public WebElement withdrawAmount;
-
-    @FindBy(css = "[value='Create voucher']")
-    public WebElement createVoucher;
-
     @FindBy(css = ".notify.success")
     public WebElement notifySuccess;
-
-    @FindBy(css = ".row-bottomline>div:nth-child(2)>div>span")
-    public List<WebElement> vouchersList;
-
-    @FindBy(css = "#input_voucher")
-    public WebElement voucherActivationInput;
-
-    @FindBy(css = "#activateVoucher")
-    public WebElement activateVoucherButton;
-
-    @FindBy(css = ".item-yellow")
-    public WebElement voucherAmountInfoCell;
 
     @FindBy(css = ".bp-dropdown.bp-dropdown-active>div>ul>li:nth-child(8)")
     public WebElement logoutButton;

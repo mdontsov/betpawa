@@ -21,6 +21,9 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
     static int stakeAmount;
     static String voucherData;
     static int voucherAmount;
+    static final String WITHDRAW_ERROR = "You cannot withdraw more money than you have on your account.";
+    static final String INVALID_AMOUNT_ERROR = "Invalid amount: please select correct amount.";
+    static final String INVALID_CURRENCY_ERROR = "The voucher is in UGX. You are only allowed to deposit vouchers in KES.";
 
     @Inject
     private BasePage basePage;
@@ -74,27 +77,32 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
         Thread.sleep(3000);
     }
 
-    @When("^place a bet of (\\d+) (\\d+) (?:time|times)$")
-    public void placeABet(int amountToBet, int amountOfBets) {
-        clickAny(basePage.pawaBoostCategory, amountOfBets);
-        if (basePage.betsAmount.size() < amountOfBets) {
-            clickAny(basePage.footballCategory, amountOfBets);
+    @When("^place a bet of (.*) (.*) (?:time|times)$")
+    public void placeABet(String amountToBet, String amountOfBets) {
+        clickAny(basePage.pawaBoostCategory, Integer.parseInt(amountOfBets));
+        if (basePage.betsAmount.size() < Integer.parseInt(amountOfBets)) {
+            clickAny(basePage.footballCategory, Integer.parseInt(amountOfBets));
         }
-        stakeAmount = amountToBet;
-        assertTrue(!basePage.placeBetButton.isEnabled());
         initialBalance = Math.round(Double.parseDouble(basePage.balanceInfo.getText()
                 .replaceAll("[^0-9]", ""))) / 100.0;
-        basePage.stakeInput.sendKeys(String.valueOf(stakeAmount));
+        if (amountToBet.equalsIgnoreCase("all")) {
+            stakeAmount = (int) Math.round(initialBalance);
+            basePage.stakeInput.sendKeys(String.valueOf(stakeAmount));
+        } else {
+            stakeAmount = Integer.parseInt(amountToBet);
+            assertTrue(!basePage.placeBetButton.isEnabled());
+            basePage.stakeInput.sendKeys(String.valueOf(stakeAmount));
+        }
         if (basePage.betsAmount.size() > 1) {
             assertTrue(basePage.bonusInfo.isDisplayed());
         }
     }
 
     @Then("^bet successfully placed$")
-    public void betSuccessfullyPlaced() {
+    public void betSuccessfullyPlaced() throws InterruptedException {
         assertTrue(basePage.placeBetButton.isEnabled());
         click(basePage.placeBetButton);
-        fluentWait().until(ExpectedConditions.visibilityOf(basePage.successNotification));
+        Thread.sleep(3000);
     }
 
     @And("^balance is reduced by bet stake amount$")
@@ -107,7 +115,7 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
     }
 
     @And("^info about (.*) is displayed on statement$")
-    public void infoAboutPlacedBetIsDisplayedOnStatement(String actionDetails) throws InterruptedException {
+    public void infoAboutActionDetailsDisplayedOnStatement(String actionDetails) throws InterruptedException {
         click(basePage.mainMenuButton);
         switch (actionDetails) {
             case "placed bet":
@@ -128,9 +136,17 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
                 click(basePage.statementInfo);
                 fluentWait().until(ExpectedConditions.visibilityOfAllElements(statementPage.statementVoucherInfo));
                 assertTrue(statementPage.statementVoucherInfo.get(0)
-                        .getText().contains("Voucher created"));
+                        .getText().contains("created"));
+                break;
+            case "voucher deposit":
+                driver().navigate().refresh();
+                click(basePage.mainMenuButton);
+                click(basePage.statementInfo);
+                fluentWait().until(ExpectedConditions.visibilityOfAllElements(statementPage.statementVoucherInfo));
+                assertTrue(statementPage.statementVoucherInfo.get(0)
+                        .getText().contains("redeemed"));
+                break;
         }
-
     }
 
     @And("^bonus is calculated$")
@@ -141,44 +157,64 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
         assertTrue(betsPage.multiBetBonus.isDisplayed());
     }
 
-    @And("^user withdraws (\\d+) to (.*)$")
-    public void userPerformsWithdrawToVoucher(int withdrawAmount, String withdrawAction) throws InterruptedException {
+    @And("^user withdraws (?:^$|(.*)) to (.*)$")
+    public void userPerformsActionToSomething(String withdrawAmount, String withdrawAction) {
         switch (withdrawAction) {
             case "voucher":
                 click(basePage.mainMenuButton);
                 click(basePage.withdrawButton);
                 click(basePage.withdrawToVoucher);
-                input(withdrawPage.withdrawAmount, withdrawAmount);
-                initialBalance = Math.round(Double.parseDouble(basePage.balanceInfo.getText()
-                        .replaceAll("[^0-9]", ""))) / 100.0;
-                voucherAmount = withdrawAmount;
-                click(withdrawPage.createVoucher);
-                fluentWait().until(ExpectedConditions.visibilityOf(withdrawPage.notifySuccess));
-//                click(basePage.withdrawToVoucher);
-                Thread.sleep(3000);
-                voucherData = withdrawPage.vouchersList.get(0).getText();
+                if (withdrawAmount.equalsIgnoreCase("nothing")) {
+                    voucherAmount = 0;
+                    click(withdrawPage.createVoucher);
+                } else {
+                    voucherAmount = Integer.parseInt(withdrawAmount);
+                    input(withdrawPage.withdrawAmount, voucherAmount);
+                    initialBalance = Math.round(Double.parseDouble(basePage.balanceInfo.getText()
+                            .replaceAll("[^0-9]", ""))) / 100.0;
+                    click(withdrawPage.createVoucher);
+                }
                 break;
         }
     }
 
     @Then("^(.*) is generated$")
-    public void voucherIsGenerated(String entityName) throws InterruptedException {
-        click(basePage.mainMenuButton);
-        click(basePage.logoutButton);
-        click(basePage.loginLink);
-        basePage.phoneNumberInput.clear();
-        basePage.phoneNumberInput.sendKeys("788899002");
-        basePage.passwordInput.sendKeys("123456");
-        click(basePage.loginButton);
+    public void somethingIsGenerated(String entityName) throws InterruptedException {
         Thread.sleep(3000);
+        voucherData = withdrawPage.vouchersList.get(0).getText();
 
         switch (entityName) {
-            case "voucher":
+            case "Uganda voucher":
+                click(basePage.mainMenuButton);
+                click(basePage.logoutButton);
+                click(basePage.loginLink);
+                basePage.phoneNumberInput.clear();
+                basePage.phoneNumberInput.sendKeys("788899002");
+                basePage.passwordInput.sendKeys("123456");
+                click(basePage.loginButton);
+                Thread.sleep(3000);
                 driver().navigate().to("http://ug.test.verekuu.com/voucher");
+                initialBalance = Math.round(Double.parseDouble(basePage.balanceInfo.getText()
+                        .replaceAll("[^0-9]", ""))) / 100.0;
                 input(voucherPage.voucherActivationInput, voucherData);
                 click(voucherPage.activateVoucherButton);
                 assertTrue(basePage.notifySuccess.isDisplayed());
-                assertTrue(voucherPage.voucherAmountInfoCell.getText().contains(String.valueOf(voucherAmount)));
+                assertEquals(voucherPage.voucherAmountInfoCell.getText(), String.valueOf(voucherAmount));
+                break;
+            case "Kenya voucher":
+                click(basePage.mainMenuButton);
+                click(basePage.logoutButton);
+                driver().navigate().to("http://ke.test.verekuu.com/");
+                click(basePage.loginLink);
+                basePage.phoneNumberInput.sendKeys("728899021");
+                basePage.passwordInput.sendKeys("123456");
+                click(basePage.loginButton);
+                Thread.sleep(3000);
+                driver().navigate().to("http://ke.test.verekuu.com/voucher");
+                initialBalance = Math.round(Double.parseDouble(basePage.balanceInfo.getText()
+                        .replaceAll("[^0-9]", ""))) / 100.0;
+                input(voucherPage.voucherActivationInput, voucherData);
+                click(voucherPage.activateVoucherButton);
         }
     }
 
@@ -197,19 +233,46 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
         click(basePage.withdrawToVoucher);
         fluentWait().until(ExpectedConditions.visibilityOfAllElements(withdrawPage.vouchersList));
         assertTrue(withdrawPage.vouchersList.get(0).getText().contains(voucherData));
+        initialBalance = Math.round(Double.parseDouble(basePage.balanceInfo.getText()
+                .replaceAll("[^0-9]", ""))) / 100.0;
     }
 
-    @And("^money are out of account$")
-    public void moneyAreOutOfAccount() {
-        newBalance = initialBalance - voucherAmount;
-        assertEquals(newBalance, Math.round(Double.parseDouble(basePage.balanceInfo.getText()
-                .replaceAll("[^0-9]", ""))) / 100.0, 0.00);
+    @And("^money are (.*) account$")
+    public void moneyAreOutOfAccount(String moneyTransfer) {
+        switch (moneyTransfer) {
+            case "out of":
+                newBalance = initialBalance;
+                assertEquals(newBalance, Math.round(Double.parseDouble(basePage.balanceInfo.getText()
+                        .replaceAll("[^0-9]", ""))) / 100.0, 0.00);
+                break;
+
+            case "into":
+                newBalance = initialBalance + voucherAmount;
+                assertEquals(newBalance, Math.round(Double.parseDouble(basePage.balanceInfo.getText()
+                        .replaceAll("[^0-9]", ""))) / 100.0, 0.00);
+                break;
+        }
     }
 
+    @Then("^​(.*) error appears$")
+    public void someErrorAppears(String errorMessage) {
+        if (initialBalance < voucherAmount && voucherAmount >= 50) {
+            assertTrue(withdrawPage.notifyError.isDisplayed());
+            errorMessage = WITHDRAW_ERROR;
+            assertEquals(errorMessage, withdrawPage.notifyError.getText());
+        } else if (initialBalance > voucherAmount && voucherAmount < 50) {
+            assertTrue(withdrawPage.notifyError.isDisplayed());
+            errorMessage = INVALID_AMOUNT_ERROR;
+            assertEquals(errorMessage, withdrawPage.notifyError.getText());
+        } else {
+            assertTrue(voucherPage.notifyError.isDisplayed());
+            errorMessage = INVALID_CURRENCY_ERROR;
+            assertEquals(errorMessage, voucherPage.notifyError.getText());
+        }
+    }
 
     @After("@end")
     public void tearDown() {
-//        quit();
+        quit();
     }
-
 }

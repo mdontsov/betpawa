@@ -20,4 +20,7 @@ public class VoucherPage {
 
     @FindBy(css = ".item-yellow")
     public WebElement voucherAmountInfoCell;
+
+    @FindBy(css = ".notify.error")
+    public WebElement notifyError;
 }

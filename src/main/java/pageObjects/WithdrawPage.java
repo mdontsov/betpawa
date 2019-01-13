@@ -25,4 +25,7 @@ public class WithdrawPage {
 
     @FindBy(css = ".row-bottomline>div:nth-child(2)>div>span")
     public List<WebElement> vouchersList;
+
+    @FindBy(css = ".notify.error")
+    public WebElement notifyError;
 }

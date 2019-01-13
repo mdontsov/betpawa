@@ -48,3 +48,4 @@
       Given user withdraws 20 to voucher
       Then Kenya voucher is generated
       And ​The voucher is in UGX. You are only allowed to deposit vouchers in KES. error appears
+      And info about voucher is not displayed on statement

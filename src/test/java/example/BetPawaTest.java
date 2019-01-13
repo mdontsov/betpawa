@@ -86,7 +86,7 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
         initialBalance = Math.round(Double.parseDouble(basePage.balanceInfo.getText()
                 .replaceAll("[^0-9]", ""))) / 100.0;
         if (amountToBet.equalsIgnoreCase("all")) {
-            stakeAmount = (int) Math.round(initialBalance);
+            stakeAmount = (int) Math.round(initialBalance - 1);
             basePage.stakeInput.sendKeys(String.valueOf(stakeAmount));
         } else {
             stakeAmount = Integer.parseInt(amountToBet);
@@ -114,8 +114,8 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
 
     }
 
-    @And("^info about (.*) is displayed on statement$")
-    public void infoAboutActionDetailsDisplayedOnStatement(String actionDetails) throws InterruptedException {
+    @And("^info about (.*) (.*) displayed on statement$")
+    public void infoAboutActionDetailsDisplayedOnStatement(String actionDetails, String statementStatus) throws InterruptedException {
         click(basePage.mainMenuButton);
         switch (actionDetails) {
             case "placed bet":
@@ -145,6 +145,10 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
                 fluentWait().until(ExpectedConditions.visibilityOfAllElements(statementPage.statementVoucherInfo));
                 assertTrue(statementPage.statementVoucherInfo.get(0)
                         .getText().contains("redeemed"));
+                if (statementStatus.equalsIgnoreCase("is not")) {
+                    assertFalse(statementPage.statementVoucherInfo.get(0)
+                            .getText().contains("redeemed"));
+                }
                 break;
         }
     }
@@ -158,7 +162,7 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
     }
 
     @And("^user withdraws (?:^$|(.*)) to (.*)$")
-    public void userPerformsActionToSomething(String withdrawAmount, String withdrawAction) {
+    public void userPerformsActionToSomething(String withdrawAmount, String withdrawAction) throws InterruptedException {
         switch (withdrawAction) {
             case "voucher":
                 click(basePage.mainMenuButton);
@@ -174,6 +178,7 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
                             .replaceAll("[^0-9]", ""))) / 100.0;
                     click(withdrawPage.createVoucher);
                 }
+                Thread.sleep(3000);
                 break;
         }
     }
@@ -198,6 +203,7 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
                         .replaceAll("[^0-9]", ""))) / 100.0;
                 input(voucherPage.voucherActivationInput, voucherData);
                 click(voucherPage.activateVoucherButton);
+                Thread.sleep(3000);
                 assertTrue(basePage.notifySuccess.isDisplayed());
                 assertEquals(voucherPage.voucherAmountInfoCell.getText(), String.valueOf(voucherAmount));
                 break;
@@ -215,6 +221,7 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
                         .replaceAll("[^0-9]", ""))) / 100.0;
                 input(voucherPage.voucherActivationInput, voucherData);
                 click(voucherPage.activateVoucherButton);
+                Thread.sleep(3000);
         }
     }
 
@@ -256,15 +263,17 @@ public class BetPawaTest extends DriverFactory implements DriverActions {
 
     @Then("^​(.*) error appears$")
     public void someErrorAppears(String errorMessage) {
-        if (initialBalance < voucherAmount && voucherAmount >= 50) {
+        if (basePage.balanceInfo.getText().contains("UGX")
+                && initialBalance < voucherAmount) {
             assertTrue(withdrawPage.notifyError.isDisplayed());
             errorMessage = WITHDRAW_ERROR;
             assertEquals(errorMessage, withdrawPage.notifyError.getText());
-        } else if (initialBalance > voucherAmount && voucherAmount < 50) {
+        } else if (basePage.balanceInfo.getText().contains("UGX")
+                && initialBalance > voucherAmount) {
             assertTrue(withdrawPage.notifyError.isDisplayed());
             errorMessage = INVALID_AMOUNT_ERROR;
             assertEquals(errorMessage, withdrawPage.notifyError.getText());
-        } else {
+        } else if (basePage.balanceInfo.getText().contains("Ksh")) {
             assertTrue(voucherPage.notifyError.isDisplayed());
             errorMessage = INVALID_CURRENCY_ERROR;
             assertEquals(errorMessage, voucherPage.notifyError.getText());
